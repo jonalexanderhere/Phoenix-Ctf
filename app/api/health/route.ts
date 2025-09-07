@@ -9,6 +9,8 @@ export async function GET() {
       uptime: process.uptime(),
       environment: process.env.NODE_ENV,
       version: process.env.npm_package_version || '1.0.0',
+      database: 'localStorage',
+      auth: 'localAuth'
     }
 
     return NextResponse.json(health, { status: 200 })
