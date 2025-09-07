@@ -1,13 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserById, getSubmissionsByUser } from '@/lib/localAuth'
+import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const user = getUserById(params.id)
-    
+    const user = await prisma.user.findUnique({
+      where: {
+        id: params.id,
+      },
+      include: {
+        submissions: {
+          include: {
+            challenge: {
+              select: {
+                id: true,
+                title: true,
+                category: true,
+                difficulty: true,
+                points: true,
+              }
+            }
+          },
+          orderBy: {
+            submittedAt: 'desc'
+          }
+        }
+      }
+    })
+
     if (!user) {
       return NextResponse.json({
         id: params.id,
@@ -21,12 +43,7 @@ export async function GET(
       })
     }
 
-    const submissions = getSubmissionsByUser(params.id)
-    
-    return NextResponse.json({
-      ...user,
-      submissions: submissions
-    })
+    return NextResponse.json(user)
   } catch (error) {
     console.error('Error fetching user data:', error)
     return NextResponse.json({

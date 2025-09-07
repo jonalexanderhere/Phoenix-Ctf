@@ -331,7 +331,11 @@ export const getLeaderboard = (): Array<LocalUser & { rank: number; challengesSo
   return leaderboard
 }
 
-// Initialize data on import
+// Initialize data on import (client-side only)
 if (typeof window !== 'undefined') {
-  initializeLocalData()
+  try {
+    initializeLocalData()
+  } catch (error) {
+    console.error('Error initializing localStorage data:', error)
+  }
 }
