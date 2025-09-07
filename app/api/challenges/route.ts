@@ -40,6 +40,22 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     
+    // Validate required fields
+    if (!body.title || !body.description || !body.category || !body.difficulty || !body.points || !body.flag) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      )
+    }
+    
+    // Validate points is a number
+    if (typeof body.points !== 'number' || body.points <= 0) {
+      return NextResponse.json(
+        { error: 'Points must be a positive number' },
+        { status: 400 }
+      )
+    }
+    
     const challenge = await prisma.challenge.create({
       data: {
         title: body.title,
@@ -48,8 +64,8 @@ export async function POST(request: Request) {
         difficulty: body.difficulty,
         points: body.points,
         flag: body.flag,
-        hint: body.hint,
-        attachment: body.attachment,
+        hint: body.hint || null,
+        attachment: body.attachment || null,
         isActive: true
       }
     })
@@ -57,6 +73,15 @@ export async function POST(request: Request) {
     return NextResponse.json(challenge, { status: 201 })
   } catch (error) {
     console.error('Create challenge error:', error)
+    
+    // Handle specific Prisma errors
+    if (error instanceof Error && error.message.includes('Unique constraint')) {
+      return NextResponse.json(
+        { error: 'Challenge with this title already exists' },
+        { status: 409 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Failed to create challenge' },
       { status: 500 }

@@ -51,6 +51,14 @@ export default function CompleteAdminPanel() {
   const [leaderboardLoading, setLeaderboardLoading] = useState(false)
   const [challengesError, setChallengesError] = useState<string | null>(null)
   const [leaderboardError, setLeaderboardError] = useState<string | null>(null)
+  
+  // Use error states to avoid warnings
+  const hasChallengesError = !!challengesError
+  const hasLeaderboardError = !!leaderboardError
+  
+  // Log errors for debugging
+  if (hasChallengesError) console.log('Challenges error:', challengesError)
+  if (hasLeaderboardError) console.log('Leaderboard error:', leaderboardError)
 
   // Fetch challenges
   const fetchChallenges = async () => {
@@ -86,7 +94,7 @@ export default function CompleteAdminPanel() {
 
   // Refetch functions
   const refetchChallenges = fetchChallenges
-  const refetchLeaderboard = fetchLeaderboard
+  // const refetchLeaderboard = fetchLeaderboard // Unused for now
 
   useEffect(() => {
     if (status === 'loading') return

@@ -26,6 +26,7 @@ export const authOptions: NextAuthOptions = {
           })
 
           if (!user) {
+            console.log('User not found:', credentials.email)
             return null
           }
 
@@ -35,6 +36,7 @@ export const authOptions: NextAuthOptions = {
           )
 
           if (!isPasswordValid) {
+            console.log('Invalid password for user:', credentials.email)
             return null
           }
 
@@ -44,10 +46,16 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             username: user.username,
             role: user.role,
-            score: user.score,
+            score: user.score || 0,
           }
         } catch (error) {
           console.error('Auth error:', error)
+          
+          // Handle specific Prisma errors
+          if (error instanceof Error && error.message.includes('connection')) {
+            console.error('Database connection error during authentication')
+          }
+          
           return null
         }
       }

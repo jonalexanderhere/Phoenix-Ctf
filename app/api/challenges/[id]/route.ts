@@ -112,6 +112,28 @@ export async function DELETE(
       )
     }
 
+    // Check if challenge exists first
+    const existingChallenge = await prisma.challenge.findUnique({
+      where: {
+        id: params.id,
+      },
+    })
+
+    if (!existingChallenge) {
+      return NextResponse.json(
+        { error: 'Challenge not found' },
+        { status: 404 }
+      )
+    }
+
+    // Delete related submissions first (if any)
+    await prisma.submission.deleteMany({
+      where: {
+        challengeId: params.id,
+      },
+    })
+
+    // Then delete the challenge
     await prisma.challenge.delete({
       where: {
         id: params.id,
@@ -121,6 +143,15 @@ export async function DELETE(
     return NextResponse.json({ message: 'Challenge deleted successfully' })
   } catch (error) {
     console.error('Error deleting challenge:', error)
+    
+    // Handle specific Prisma errors
+    if (error instanceof Error && error.message.includes('P2025')) {
+      return NextResponse.json(
+        { error: 'Challenge not found' },
+        { status: 404 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
