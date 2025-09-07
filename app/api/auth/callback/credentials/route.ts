@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server'
 
-// Simple NextAuth handler that doesn't use database
 export async function GET() {
   return NextResponse.json({ 
-    message: 'NextAuth endpoint active',
+    message: 'Callback endpoint active',
     status: 'ok'
   })
 }
 
 export async function POST() {
   return NextResponse.json({ 
-    message: 'NextAuth endpoint active',
+    message: 'Callback endpoint active',
     status: 'ok'
   })
 }

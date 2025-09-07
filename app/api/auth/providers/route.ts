@@ -22,3 +22,8 @@ export async function GET() {
     )
   }
 }
+
+export async function POST() {
+  // Handle POST requests to providers endpoint
+  return NextResponse.json({ message: 'Providers endpoint active' })
+}
