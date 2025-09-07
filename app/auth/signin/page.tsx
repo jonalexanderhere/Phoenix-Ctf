@@ -1,5 +1,5 @@
-import { OptimizedSignIn } from '@/components/OptimizedAuthForm'
+import { SimpleSignIn } from '@/components/SimpleAuthForm'
 
 export default function SignIn() {
-  return <OptimizedSignIn />
+  return <SimpleSignIn />
 }
