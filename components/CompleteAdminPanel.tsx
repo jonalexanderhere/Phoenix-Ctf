@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Navbar from './Navbar'
 import LoadingSpinner from './LoadingSpinner'
 import EmptyState from './EmptyState'
-import { useChallenges, useLeaderboard } from '@/hooks/useLocalStorage'
+// import { useChallenges, useLeaderboard } from '@/hooks/useLocalStorage' // Removed for production
 
 // interface Challenge {
 //   id: string
@@ -45,16 +45,48 @@ export default function CompleteAdminPanel() {
     flag: ''
   })
 
-  const { 
-    data: challenges = [], 
-    loading: challengesLoading, 
-    refetch: refetchChallenges 
-  } = useChallenges()
+  const [challenges, setChallenges] = useState<any[]>([])
+  const [leaderboard, setLeaderboard] = useState<any[]>([])
+  const [challengesLoading, setChallengesLoading] = useState(false)
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false)
+  const [challengesError, setChallengesError] = useState<string | null>(null)
+  const [leaderboardError, setLeaderboardError] = useState<string | null>(null)
 
-  const { 
-    data: leaderboard = [], 
-    loading: leaderboardLoading
-  } = useLeaderboard()
+  // Fetch challenges
+  const fetchChallenges = async () => {
+    try {
+      setChallengesLoading(true)
+      setChallengesError(null)
+      const response = await fetch('/api/challenges')
+      if (!response.ok) throw new Error('Failed to fetch challenges')
+      const data = await response.json()
+      setChallenges(data)
+    } catch (error) {
+      setChallengesError(error instanceof Error ? error.message : 'Failed to fetch challenges')
+    } finally {
+      setChallengesLoading(false)
+    }
+  }
+
+  // Fetch leaderboard
+  const fetchLeaderboard = async () => {
+    try {
+      setLeaderboardLoading(true)
+      setLeaderboardError(null)
+      const response = await fetch('/api/leaderboard')
+      if (!response.ok) throw new Error('Failed to fetch leaderboard')
+      const data = await response.json()
+      setLeaderboard(data)
+    } catch (error) {
+      setLeaderboardError(error instanceof Error ? error.message : 'Failed to fetch leaderboard')
+    } finally {
+      setLeaderboardLoading(false)
+    }
+  }
+
+  // Refetch functions
+  const refetchChallenges = fetchChallenges
+  const refetchLeaderboard = fetchLeaderboard
 
   useEffect(() => {
     if (status === 'loading') return
@@ -68,6 +100,10 @@ export default function CompleteAdminPanel() {
       router.push('/profile')
       return
     }
+
+    // Fetch data when component mounts
+    fetchChallenges()
+    fetchLeaderboard()
   }, [status, router, session])
 
   const handleCreateChallenge = async (e: React.FormEvent) => {
