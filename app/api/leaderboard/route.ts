@@ -1,48 +1,52 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+
+// Mock leaderboard data
+const mockLeaderboard = [
+  {
+    id: '1',
+    name: 'Admin User',
+    username: 'admin',
+    score: 1000,
+    rank: 1,
+    challengesSolved: 5,
+    badges: ['First Blood', 'Speed Demon']
+  },
+  {
+    id: '2',
+    name: 'Test User',
+    username: 'user',
+    score: 500,
+    rank: 2,
+    challengesSolved: 3,
+    badges: ['First Blood']
+  },
+  {
+    id: '3',
+    name: 'CTF Master',
+    username: 'ctf_master',
+    score: 750,
+    rank: 3,
+    challengesSolved: 4,
+    badges: ['Speed Demon', 'Persistence']
+  }
+]
 
 export async function GET() {
   try {
-    const leaderboard = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        username: true,
-        score: true,
-        createdAt: true,
-        submissions: {
-          where: {
-            isCorrect: true,
-          },
-          select: {
-            submittedAt: true,
-          },
-        },
-      },
-      orderBy: {
-        score: 'desc',
-      },
-    })
-
-    // Add rank and solved count to each user
-    const leaderboardWithRank = leaderboard.map((user: any, index: number) => ({
+    // Sort by score descending
+    const sortedLeaderboard = mockLeaderboard.sort((a, b) => b.score - a.score)
+    
+    // Update ranks
+    const leaderboardWithRanks = sortedLeaderboard.map((user, index) => ({
       ...user,
-      rank: index + 1,
-      solvedCount: user.submissions.length,
-      lastSolved: user.submissions.length > 0 
-        ? user.submissions.reduce((latest: any, submission: any) => 
-            submission.submittedAt > latest ? submission.submittedAt : latest, 
-            user.submissions[0].submittedAt
-          )
-        : null,
-      submissions: undefined, // Remove submissions from response
+      rank: index + 1
     }))
-
-    return NextResponse.json(leaderboardWithRank)
+    
+    return NextResponse.json(leaderboardWithRanks, { status: 200 })
   } catch (error) {
-    console.error('Error fetching leaderboard:', error)
+    console.error('Leaderboard API error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to fetch leaderboard' },
       { status: 500 }
     )
   }

@@ -7,7 +7,13 @@ export default function Navbar() {
   const { data: session, status } = useSession()
 
   const handleSignOut = () => {
-    signOut({ callbackUrl: '/' })
+    try {
+      signOut({ callbackUrl: '/' })
+    } catch (error) {
+      console.error('Sign out error:', error)
+      // Fallback: redirect to home page
+      window.location.href = '/'
+    }
   }
 
   return (

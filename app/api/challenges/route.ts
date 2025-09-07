@@ -1,127 +1,74 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { NextResponse } from 'next/server'
+
+// Mock challenges data
+const mockChallenges = [
+  {
+    id: '1',
+    title: 'Welcome Challenge',
+    description: 'A simple challenge to get you started with PHX CTF platform.',
+    category: 'Web',
+    difficulty: 'Easy',
+    points: 100,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    submissions: []
+  },
+  {
+    id: '2',
+    title: 'Basic SQL Injection',
+    description: 'Find the flag by exploiting a basic SQL injection vulnerability.',
+    category: 'Web',
+    difficulty: 'Medium',
+    points: 200,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    submissions: []
+  },
+  {
+    id: '3',
+    title: 'Caesar Cipher',
+    description: 'Decode the message using Caesar cipher technique.',
+    category: 'Cryptography',
+    difficulty: 'Easy',
+    points: 150,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    submissions: []
+  }
+]
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    
-    // Add cache headers to reduce server load
-    const response = NextResponse.next()
-    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300')
-    
-    const challenges = await prisma.challenge.findMany({
-      where: {
-        isActive: true,
-      },
-      include: {
-        submissions: session ? {
-          where: {
-            userId: session.user.id,
-          },
-        } : false,
-      },
-      orderBy: [
-        { category: 'asc' },
-        { difficulty: 'asc' },
-        { points: 'asc' },
-      ],
-    })
-
-    // Transform data to include solved status
-    const challengesWithStatus = challenges.map((challenge: any) => ({
-      ...challenge,
-      isSolved: session ? challenge.submissions.some((sub: any) => sub.isCorrect) : false,
-      submissions: undefined, // Remove submissions from response
-    }))
-
-    return NextResponse.json(challengesWithStatus, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-        'X-Content-Type-Options': 'nosniff',
-      }
-    })
+    return NextResponse.json(mockChallenges, { status: 200 })
   } catch (error) {
-    console.error('Error fetching challenges:', error)
+    console.error('Challenges API error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { 
-        status: 500,
-        headers: {
-          'Retry-After': '30'
-        }
-      }
+      { error: 'Failed to fetch challenges' },
+      { status: 500 }
     )
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
     const body = await request.json()
-    const { title, description, category, difficulty, points, flag, hint, attachment } = body
-
-    // Validate required fields
-    if (!title || !description || !category || !difficulty || !points || !flag) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
+    
+    // Mock challenge creation
+    const newChallenge = {
+      id: (mockChallenges.length + 1).toString(),
+      ...body,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      submissions: []
     }
-
-    // Validate category
-    const validCategories = ['WEB', 'CRYPTO', 'FORENSICS', 'REVERSE', 'PWN', 'MISC']
-    if (!validCategories.includes(category)) {
-      return NextResponse.json(
-        { error: 'Invalid category' },
-        { status: 400 }
-      )
-    }
-
-    // Validate difficulty
-    const validDifficulties = ['EASY', 'MEDIUM', 'HARD']
-    if (!validDifficulties.includes(difficulty)) {
-      return NextResponse.json(
-        { error: 'Invalid difficulty' },
-        { status: 400 }
-      )
-    }
-
-    // Validate points
-    if (points < 1 || points > 1000) {
-      return NextResponse.json(
-        { error: 'Points must be between 1 and 1000' },
-        { status: 400 }
-      )
-    }
-
-    const challenge = await prisma.challenge.create({
-      data: {
-        title: title.trim(),
-        description: description.trim(),
-        category,
-        difficulty,
-        points: parseInt(points),
-        flag: flag.trim(),
-        hint: hint?.trim() || null,
-        attachment: attachment?.trim() || null,
-      },
-    })
-
-    return NextResponse.json(challenge, { status: 201 })
+    
+    mockChallenges.push(newChallenge)
+    
+    return NextResponse.json(newChallenge, { status: 201 })
   } catch (error) {
-    console.error('Error creating challenge:', error)
+    console.error('Create challenge error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to create challenge' },
       { status: 500 }
     )
   }

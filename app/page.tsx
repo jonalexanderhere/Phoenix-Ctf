@@ -4,7 +4,13 @@ import { authOptions } from '@/lib/auth'
 import Navbar from '@/components/Navbar'
 
 export default async function Home() {
-  const session = await getServerSession(authOptions)
+  let session = null
+  try {
+    session = await getServerSession(authOptions)
+  } catch (error) {
+    console.error('Session error:', error)
+    // Continue without session if there's an error
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -1,8 +1,8 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 // import { PrismaAdapter } from '@next-auth/prisma-adapter' // Disabled for now
-import { prisma } from './prisma'
-import bcrypt from 'bcryptjs'
+// import { prisma } from './prisma' // Disabled for now
+// import bcrypt from 'bcryptjs' // Disabled for now
 
 export const authOptions: NextAuthOptions = {
   // adapter: PrismaAdapter(prisma), // Disabled for now to avoid database errors
@@ -19,33 +19,31 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const user = await prisma.user.findUnique({
-            where: {
-              email: credentials.email
+          // Temporary mock authentication for deployment
+          // TODO: Re-enable database authentication after database setup
+          if (credentials.email === 'admin@example.com' && credentials.password === 'admin123') {
+            return {
+              id: '1',
+              email: 'admin@example.com',
+              name: 'Admin User',
+              username: 'admin',
+              role: 'ADMIN',
+              score: 1000,
             }
-          })
-
-          if (!user) {
-            return null
           }
 
-          const isPasswordValid = await bcrypt.compare(
-            credentials.password,
-            user.password
-          )
-
-          if (!isPasswordValid) {
-            return null
+          if (credentials.email === 'user@example.com' && credentials.password === 'user123') {
+            return {
+              id: '2',
+              email: 'user@example.com',
+              name: 'Test User',
+              username: 'user',
+              role: 'USER',
+              score: 500,
+            }
           }
 
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            username: user.username,
-            role: user.role,
-            score: user.score,
-          }
+          return null
         } catch (error) {
           console.error('Auth error:', error)
           return null
