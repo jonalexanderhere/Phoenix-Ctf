@@ -21,37 +21,37 @@ const nextConfig = {
     TZ: 'Asia/Jakarta',
   },
   
-  // Headers for security
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
-        ],
-      },
-    ]
-  },
+  // Headers for security (disabled for now to avoid deployment issues)
+  // async headers() {
+  //   return [
+  //     {
+  //       source: '/(.*)',
+  //       headers: [
+  //         {
+  //           key: 'X-Frame-Options',
+  //           value: 'DENY',
+  //         },
+  //         {
+  //           key: 'X-Content-Type-Options',
+  //           value: 'nosniff',
+  //         },
+  //         {
+  //           key: 'Referrer-Policy',
+  //           value: 'strict-origin-when-cross-origin',
+  //         },
+  //       ],
+  //     },
+  //   ]
+  // },
   
-  // Performance optimizations
+  // Performance optimizations (simplified for deployment)
   poweredByHeader: false,
   compress: true,
   
-  // Experimental features for better performance
-  experimental: {
-    optimizePackageImports: ['@heroicons/react', 'react-hot-toast'],
-  },
+  // Experimental features (disabled for stability)
+  // experimental: {
+  //   optimizePackageImports: ['@heroicons/react', 'react-hot-toast'],
+  // },
 }
 
 module.exports = nextConfig

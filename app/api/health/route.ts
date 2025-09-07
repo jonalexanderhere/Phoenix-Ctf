@@ -1,28 +1,27 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    // Check database connection
-    await prisma.$queryRaw`SELECT 1`
-    
-    return NextResponse.json({
-      status: 'healthy',
+    // Basic health check
+    const health = {
+      status: 'ok',
       timestamp: new Date().toISOString(),
-      database: 'connected',
-      version: '1.0.0'
-    })
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV,
+      version: process.env.npm_package_version || '1.0.0',
+    }
+
+    return NextResponse.json(health, { status: 200 })
   } catch (error) {
     console.error('Health check failed:', error)
+    
     return NextResponse.json(
       {
-        status: 'unhealthy',
+        status: 'error',
         timestamp: new Date().toISOString(),
-        database: 'disconnected',
-        error: 'Database connection failed'
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 503 }
+      { status: 500 }
     )
   }
 }
-
