@@ -1,0 +1,77 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# Use Netlify's Next.js plugin
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# API routes
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/_next/*"
+  to = "/_next/:splat"
+  status = 200
+
+# Handle client-side routing
+[[redirects]]
+  from = "/challenges"
+  to = "/challenges/"
+  status = 200
+
+[[redirects]]
+  from = "/profile"
+  to = "/profile/"
+  status = 200
+
+[[redirects]]
+  from = "/leaderboard"
+  to = "/leaderboard/"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin/"
+  status = 200
+
+[[redirects]]
+  from = "/auth/signin"
+  to = "/auth/signin/"
+  status = 200
+
+[[redirects]]
+  from = "/auth/signup"
+  to = "/auth/signup/"
+  status = 200
+
+[[redirects]]
+  from = "/web-challenge"
+  to = "/web-challenge/"
+  status = 200
+
+# Fallback for all other routes - redirect to index.html for SPA routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers for security and performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
