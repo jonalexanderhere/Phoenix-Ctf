@@ -27,9 +27,11 @@ export default function UltraFastProfile() {
       setLoading(true)
       setError(null)
       
-      const response = await fetch(`/api/users/${session.user.id}`, {
-        cache: 'force-cache', // Use cached data
-        next: { revalidate: 60 } // Revalidate every minute
+      const response = await fetch('/api/profile', {
+        cache: 'no-store', // Don't cache for real-time data
+        headers: {
+          'Content-Type': 'application/json'
+        }
       })
       
       if (!response.ok) {
