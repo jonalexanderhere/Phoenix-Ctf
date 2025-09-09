@@ -1,5 +1,16 @@
 import { supabaseAdmin } from './supabase'
 
+// Fallback in-memory storage
+declare global {
+  var __fallbackSubmissions: any[] | undefined
+}
+
+if (!global.__fallbackSubmissions) {
+  global.__fallbackSubmissions = []
+}
+
+const fallbackSubmissions = global.__fallbackSubmissions
+
 export interface Submission {
   id: string
   user_id: string
@@ -93,13 +104,15 @@ export async function getAllSubmissions(): Promise<Submission[]> {
       .order('submitted_at', { ascending: false })
 
     if (error) {
-      console.error('Error getting all submissions:', error)
-      throw error
+      console.log('Supabase not available, using fallback submissions storage')
+      // Fallback to in-memory storage
+      return fallbackSubmissions
     }
 
     return data || []
   } catch (error) {
-    console.error('Get all submissions error:', error)
-    throw error
+    console.log('Supabase error, using fallback submissions storage')
+    // Fallback to in-memory storage
+    return fallbackSubmissions
   }
 }

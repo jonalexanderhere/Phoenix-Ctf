@@ -55,9 +55,8 @@ export function SimpleSignIn() {
         setTimeout(() => {
           // Use replace instead of push to prevent back button issues
           router.replace('/')
-          // Force page reload to ensure session is properly set
-          window.location.reload()
-        }, 1000)
+          // Don't force reload - let the session hook handle it
+        }, 500)
       } else {
         console.error('Login error:', result?.error || 'Unknown error')
         console.error('Response not ok or result not success:', { responseOk: response.ok, result })

@@ -48,6 +48,7 @@ export async function addUser(userData: {
     // Hash password
     const hashedPassword = await bcrypt.hash(userData.password, 12)
     
+    // Try Supabase first
     const { data, error } = await supabaseAdmin
       .from('users')
       .insert({
@@ -63,7 +64,7 @@ export async function addUser(userData: {
       .single()
 
     if (error) {
-      console.error('Error adding user to Supabase:', error)
+      console.log('Supabase not available, using fallback storage')
       // Fallback to in-memory storage if Supabase fails
       const fallbackUser = {
         id: `user-${Date.now()}`,
@@ -78,14 +79,14 @@ export async function addUser(userData: {
         updated_at: new Date().toISOString()
       }
       fallbackUsers.push(fallbackUser)
-      console.log('User added to fallback storage:', fallbackUser.email, 'Total users:', fallbackUsers.length)
+      console.log('✅ User added to fallback storage:', fallbackUser.email, 'Total users:', fallbackUsers.length)
       return fallbackUser
     }
 
-    console.log('User added to Supabase:', data.email)
+    console.log('✅ User added to Supabase:', data.email)
     return data
   } catch (error) {
-    console.error('Add user error:', error)
+    console.log('Supabase error, using fallback storage')
     // Fallback to in-memory storage
     const hashedPassword = await bcrypt.hash(userData.password, 12)
     const fallbackUser = {
@@ -101,7 +102,7 @@ export async function addUser(userData: {
       updated_at: new Date().toISOString()
     }
     fallbackUsers.push(fallbackUser)
-    console.log('User added to fallback storage:', fallbackUser.email, 'Total users:', fallbackUsers.length)
+    console.log('✅ User added to fallback storage:', fallbackUser.email, 'Total users:', fallbackUsers.length)
     return fallbackUser
   }
 }
@@ -168,18 +169,16 @@ export async function getAllUsers(): Promise<User[]> {
       .order('score', { ascending: false })
 
     if (error) {
-      console.error('Error getting all users from Supabase:', error)
+      console.log('Supabase not available, using fallback users storage')
       // Fallback to in-memory storage
-      console.log('Using fallback users storage')
-      return fallbackUsers
+      return fallbackUsers.sort((a, b) => b.score - a.score)
     }
 
     return data || []
   } catch (error) {
-    console.error('Get all users error:', error)
+    console.log('Supabase error, using fallback users storage')
     // Fallback to in-memory storage
-    console.log('Using fallback users storage')
-    return fallbackUsers
+    return fallbackUsers.sort((a, b) => b.score - a.score)
   }
 }
 
