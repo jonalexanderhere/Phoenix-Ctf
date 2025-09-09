@@ -16,14 +16,22 @@ export async function GET() {
     } catch (parseError) {
       console.error('Session parse error:', parseError)
       // Clear invalid session
-      cookieStore.delete('auth-session')
+      try {
+        cookieStore.delete('auth-session')
+      } catch (deleteError) {
+        console.error('Cookie delete error:', deleteError)
+      }
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
     }
 
     // Check if session is expired
     if (new Date(sessionData.expires) < new Date()) {
       // Clear expired session
-      cookieStore.delete('auth-session')
+      try {
+        cookieStore.delete('auth-session')
+      } catch (deleteError) {
+        console.error('Cookie delete error:', deleteError)
+      }
       return NextResponse.json({ error: 'Session expired' }, { status: 401 })
     }
 

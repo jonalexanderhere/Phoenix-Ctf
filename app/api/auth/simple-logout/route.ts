@@ -4,7 +4,11 @@ import { cookies } from 'next/headers'
 export async function POST() {
   try {
     const cookieStore = cookies()
-    cookieStore.delete('auth-session')
+    try {
+      cookieStore.delete('auth-session')
+    } catch (deleteError) {
+      console.error('Cookie delete error:', deleteError)
+    }
 
     return NextResponse.json({
       success: true,
