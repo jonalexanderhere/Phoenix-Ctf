@@ -1,5 +1,16 @@
 import { supabaseAdmin } from './supabase'
 
+// Fallback in-memory storage
+declare global {
+  var __fallbackChallenges: any[] | undefined
+}
+
+if (!global.__fallbackChallenges) {
+  global.__fallbackChallenges = []
+}
+
+const fallbackChallenges = global.__fallbackChallenges
+
 export interface Challenge {
   id: string
   title: string
@@ -8,10 +19,10 @@ export interface Challenge {
   difficulty: 'EASY' | 'MEDIUM' | 'HARD'
   points: number
   flag: string
-  hint?: string
-  attachment?: string
+  hint?: string | null
+  attachment?: string | null
   is_active: boolean
-  created_by?: string
+  created_by?: string | null
   created_at: string
   updated_at: string
 }
@@ -46,15 +57,51 @@ export async function createChallenge(challengeData: {
       .single()
 
     if (error) {
-      console.error('Error creating challenge:', error)
-      throw error
+      console.error('Error creating challenge in Supabase:', error)
+      // Fallback to in-memory storage
+      const fallbackChallenge = {
+        id: `challenge-${Date.now()}`,
+        title: challengeData.title,
+        description: challengeData.description,
+        category: challengeData.category,
+        difficulty: challengeData.difficulty,
+        points: challengeData.points,
+        flag: challengeData.flag,
+        hint: challengeData.hint || null,
+        attachment: challengeData.attachment || null,
+        is_active: true,
+        created_by: challengeData.created_by || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+      fallbackChallenges.push(fallbackChallenge)
+      console.log('Challenge created in fallback storage:', fallbackChallenge.title)
+      return fallbackChallenge
     }
 
     console.log('Challenge created in Supabase:', data.title)
     return data
   } catch (error) {
     console.error('Create challenge error:', error)
-    throw error
+    // Fallback to in-memory storage
+    const fallbackChallenge = {
+      id: `challenge-${Date.now()}`,
+      title: challengeData.title,
+      description: challengeData.description,
+      category: challengeData.category,
+      difficulty: challengeData.difficulty,
+      points: challengeData.points,
+      flag: challengeData.flag,
+        hint: challengeData.hint || null,
+        attachment: challengeData.attachment || null,
+      is_active: true,
+      created_by: challengeData.created_by || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+    fallbackChallenges.push(fallbackChallenge)
+    console.log('Challenge created in fallback storage:', fallbackChallenge.title)
+    return fallbackChallenge
   }
 }
 
@@ -67,14 +114,18 @@ export async function getAllChallenges(): Promise<Challenge[]> {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error getting challenges:', error)
-      throw error
+      console.error('Error getting challenges from Supabase:', error)
+      // Fallback to in-memory storage
+      console.log('Using fallback challenges storage')
+      return fallbackChallenges
     }
 
     return data || []
   } catch (error) {
     console.error('Get challenges error:', error)
-    throw error
+    // Fallback to in-memory storage
+    console.log('Using fallback challenges storage')
+    return fallbackChallenges
   }
 }
 

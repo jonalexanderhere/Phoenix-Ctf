@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getUserById } from '@/lib/supabaseUserStorage'
 import { getUserSubmissions } from '@/lib/supabaseSubmissionStorage'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get session from cookies
     const cookieStore = cookies()
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     
     // Calculate stats
     const totalSubmissions = userSubmissions.length
-    const solvedChallenges = userSubmissions.filter(s => s.isCorrect).length
+    const solvedChallenges = userSubmissions.filter(s => s.is_correct).length
     const averageScore = totalSubmissions > 0 ? user.score / totalSubmissions : 0
 
     // Prepare profile data

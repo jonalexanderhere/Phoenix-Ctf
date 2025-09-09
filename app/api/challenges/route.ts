@@ -1,29 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAllChallenges, createChallenge } from '@/lib/supabaseChallengeStorage'
 
-async function getSession() {
-  try {
-    const cookieStore = cookies()
-    const sessionCookie = cookieStore.get('auth-session')
-    
-    if (!sessionCookie) {
-      return null
-    }
-    
-    const sessionData = JSON.parse(sessionCookie.value)
-    
-    // Check if session is expired
-    if (new Date(sessionData.expires) < new Date()) {
-      return null
-    }
-    
-    return sessionData
-  } catch (error) {
-    console.error('Session check error:', error)
-    return null
-  }
-}
-
 export async function GET() {
   try {
     console.log('Getting challenges from Supabase...')

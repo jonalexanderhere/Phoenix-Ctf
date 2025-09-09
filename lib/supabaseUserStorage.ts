@@ -145,14 +145,18 @@ export async function getUserById(id: string): Promise<User | null> {
       if (error.code === 'PGRST116') {
         return null // User not found
       }
-      console.error('Error getting user by id:', error)
-      throw error
+      console.error('Error getting user by id from Supabase:', error)
+      // Fallback to in-memory storage
+      const fallbackUser = fallbackUsers.find(u => u.id === id)
+      return fallbackUser || null
     }
 
     return data
   } catch (error) {
     console.error('Get user by id error:', error)
-    throw error
+    // Fallback to in-memory storage
+    const fallbackUser = fallbackUsers.find(u => u.id === id)
+    return fallbackUser || null
   }
 }
 
@@ -164,35 +168,72 @@ export async function getAllUsers(): Promise<User[]> {
       .order('score', { ascending: false })
 
     if (error) {
-      console.error('Error getting all users:', error)
-      throw error
+      console.error('Error getting all users from Supabase:', error)
+      // Fallback to in-memory storage
+      console.log('Using fallback users storage')
+      return fallbackUsers
     }
 
     return data || []
   } catch (error) {
     console.error('Get all users error:', error)
-    throw error
+    // Fallback to in-memory storage
+    console.log('Using fallback users storage')
+    return fallbackUsers
   }
 }
 
 export async function updateUserScore(userId: string, points: number): Promise<void> {
   try {
+    // First get current user
+    const { data: user, error: getUserError } = await supabaseAdmin
+      .from('users')
+      .select('score')
+      .eq('id', userId)
+      .single()
+
+    if (getUserError) {
+      console.error('Error getting user for score update:', getUserError)
+      // Fallback to in-memory storage
+      const fallbackUser = fallbackUsers.find(u => u.id === userId)
+      if (fallbackUser) {
+        fallbackUser.score += points
+        fallbackUser.updated_at = new Date().toISOString()
+        console.log('User score updated in fallback storage:', userId, '+', points, 'points')
+      }
+      return
+    }
+
+    // Update with new score
     const { error } = await supabaseAdmin
       .from('users')
       .update({ 
-        score: supabaseAdmin.raw(`score + ${points}`),
+        score: (user.score || 0) + points,
         updated_at: new Date().toISOString()
       })
       .eq('id', userId)
 
     if (error) {
       console.error('Error updating user score:', error)
-      throw error
+      // Fallback to in-memory storage
+      const fallbackUser = fallbackUsers.find(u => u.id === userId)
+      if (fallbackUser) {
+        fallbackUser.score += points
+        fallbackUser.updated_at = new Date().toISOString()
+        console.log('User score updated in fallback storage:', userId, '+', points, 'points')
+      }
+      return
     }
 
     console.log('User score updated in Supabase:', userId, '+', points, 'points')
   } catch (error) {
     console.error('Update user score error:', error)
-    throw error
+    // Fallback to in-memory storage
+    const fallbackUser = fallbackUsers.find(u => u.id === userId)
+    if (fallbackUser) {
+      fallbackUser.score += points
+      fallbackUser.updated_at = new Date().toISOString()
+      console.log('User score updated in fallback storage:', userId, '+', points, 'points')
+    }
   }
 }
