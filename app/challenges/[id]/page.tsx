@@ -1,10 +1,8 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import { LazyChallengeHistory } from '@/components/LazyComponents'
 import ChallengeCard from '@/components/ChallengeCard'
-import { prisma } from '@/lib/prisma'
 import { Challenge } from '@/types'
 
 interface ChallengeDetailPageProps {
@@ -13,56 +11,110 @@ interface ChallengeDetailPageProps {
 
 async function getChallenge(challengeId: string, userId?: string) {
   try {
-    const challenge = await prisma.challenge.findUnique({
-      where: { id: challengeId },
-      include: {
-        submissions: {
-          where: { isCorrect: true },
-          include: {
+    // For production, use mock data since we don't have database
+    const mockChallenges = [
+      {
+        id: '1',
+        title: 'Web Security Challenge',
+        description: 'Find the hidden flag in this web application. Look for common web vulnerabilities.',
+        category: 'WEB',
+        difficulty: 'EASY',
+        points: 100,
+        flag: 'FLAG{web_security_101}',
+        hint: 'Check the source code and look for comments',
+        attachment: null,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        submissions: [
+          {
+            id: '1',
+            userId: 'admin-prod-001',
+            challengeId: '1',
+            flag: 'FLAG{web_security_101}',
+            isCorrect: true,
+            submittedAt: new Date(),
             user: {
-              select: {
-                id: true,
-                name: true,
-                username: true,
-              },
-            },
-          },
-          orderBy: {
-            submittedAt: 'asc',
-          },
-        },
+              id: 'admin-prod-001',
+              name: 'Admin User',
+              username: 'admin'
+            }
+          }
+        ],
+        isSolved: userId === 'admin-prod-001'
       },
-    })
+      {
+        id: '2',
+        title: 'Cryptography Challenge',
+        description: 'Decrypt this message using the provided cipher.',
+        category: 'CRYPTO',
+        difficulty: 'MEDIUM',
+        points: 200,
+        flag: 'FLAG{crypto_master}',
+        hint: 'Try Caesar cipher with shift 13',
+        attachment: null,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        submissions: [],
+        isSolved: false
+      },
+      {
+        id: '3',
+        title: 'Reverse Engineering',
+        description: 'Analyze this binary file and find the flag.',
+        category: 'REVERSE',
+        difficulty: 'HARD',
+        points: 300,
+        flag: 'FLAG{reverse_engineer}',
+        hint: 'Use strings command to find readable text',
+        attachment: null,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        submissions: [],
+        isSolved: false
+      }
+    ]
 
+    const challenge = mockChallenges.find(c => c.id === challengeId)
+    
     if (!challenge) {
       return null
     }
 
-    // Check if current user has solved this challenge
-    let isSolved = false
-    if (userId) {
-      const userSubmission = await prisma.submission.findFirst({
-        where: {
-          userId: userId,
-          challengeId: challengeId,
-          isCorrect: true,
-        },
-      })
-      isSolved = !!userSubmission
-    }
-
-    return {
-      ...challenge,
-      isSolved,
-    } as Challenge & { isSolved: boolean }
+    return challenge as Challenge & { isSolved: boolean }
   } catch (error) {
     console.error('Error fetching challenge:', error)
     return null
   }
 }
 
+async function getSession() {
+  try {
+    const cookieStore = cookies()
+    const sessionCookie = cookieStore.get('auth-session')
+    
+    if (!sessionCookie) {
+      return null
+    }
+    
+    const sessionData = JSON.parse(sessionCookie.value)
+    
+    // Check if session is expired
+    if (new Date(sessionData.expires) < new Date()) {
+      return null
+    }
+    
+    return sessionData
+  } catch (error) {
+    console.error('Session check error:', error)
+    return null
+  }
+}
+
 export default async function ChallengeDetailPage({ params }: ChallengeDetailPageProps) {
-  const session = await getServerSession(authOptions)
+  const session = await getSession()
   
   if (!session) {
     redirect('/auth/signin')

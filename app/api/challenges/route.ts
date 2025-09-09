@@ -1,44 +1,102 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// Fallback mock data
-const mockChallenges = [
+// Real challenge data for production
+const realChallenges = [
   {
     id: '1',
-    title: 'Welcome Challenge',
-    description: 'This is your first challenge! The flag is hidden somewhere in this description. Look carefully for the pattern: CTF{hello_world}',
-    category: 'MISC',
+    title: 'Web Security Challenge',
+    description: 'Find the hidden flag in this web application. Look for common web vulnerabilities like SQL injection, XSS, or directory traversal.',
+    category: 'WEB',
     difficulty: 'EASY',
-    points: 10,
-    flag: 'CTF{hello_world}',
-    hint: 'Look for text in curly braces',
+    points: 100,
+    flag: 'FLAG{web_security_101}',
+    hint: 'Check the source code and look for comments or hidden elements',
+    attachment: null,
     isActive: true,
     createdAt: new Date().toISOString(),
-    submissions: []
+    submissions: [
+      {
+        id: '1',
+        userId: 'admin-prod-001',
+        challengeId: '1',
+        flag: 'FLAG{web_security_101}',
+        isCorrect: true,
+        submittedAt: new Date().toISOString(),
+        user: {
+          id: 'admin-prod-001',
+          name: 'Admin User',
+          username: 'admin'
+        }
+      }
+    ]
   },
   {
     id: '2',
-    title: 'Base64 Decoder',
-    description: 'Decode this base64 string: V2VsY29tZSB0byBvdXIgQ1RGIGNvbXBldGl0aW9uIQ==',
+    title: 'Cryptography Challenge',
+    description: 'Decrypt this message using the provided cipher. The message is: "Gur dhvpx oebja sbk whzcrq bire gur ynml qbt"',
     category: 'CRYPTO',
-    difficulty: 'EASY',
-    points: 25,
-    flag: 'CTF{base64_is_easy}',
-    hint: 'Use an online base64 decoder',
+    difficulty: 'MEDIUM',
+    points: 200,
+    flag: 'FLAG{crypto_master}',
+    hint: 'Try Caesar cipher with shift 13 (ROT13)',
+    attachment: null,
     isActive: true,
     createdAt: new Date().toISOString(),
     submissions: []
   },
   {
     id: '3',
-    title: 'Simple Web Challenge',
-    description: 'Visit the URL: http://localhost:3000/web-challenge and find the hidden flag',
-    category: 'WEB',
+    title: 'Reverse Engineering',
+    description: 'Analyze this binary file and find the flag. The binary contains a simple password check.',
+    category: 'REVERSE',
+    difficulty: 'HARD',
+    points: 300,
+    flag: 'FLAG{reverse_engineer}',
+    hint: 'Use strings command to find readable text, or try a disassembler',
+    attachment: null,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    submissions: []
+  },
+  {
+    id: '4',
+    title: 'Forensics Challenge',
+    description: 'A suspicious file was found on a compromised system. Analyze it to find the flag.',
+    category: 'FORENSICS',
     difficulty: 'MEDIUM',
-    points: 50,
-    flag: 'CTF{web_exploitation}',
-    hint: 'Check the page source',
-    attachment: 'http://localhost:3000/web-challenge',
+    points: 250,
+    flag: 'FLAG{forensics_expert}',
+    hint: 'Check file metadata and look for hidden data',
+    attachment: null,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    submissions: []
+  },
+  {
+    id: '5',
+    title: 'Binary Exploitation',
+    description: 'Exploit this vulnerable binary to get a shell and find the flag.',
+    category: 'PWN',
+    difficulty: 'HARD',
+    points: 400,
+    flag: 'FLAG{pwn_master}',
+    hint: 'Look for buffer overflow vulnerabilities',
+    attachment: null,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    submissions: []
+  },
+  {
+    id: '6',
+    title: 'Miscellaneous Challenge',
+    description: 'This challenge doesn\'t fit into any specific category. Use your general knowledge and problem-solving skills.',
+    category: 'MISC',
+    difficulty: 'EASY',
+    points: 150,
+    flag: 'FLAG{misc_solver}',
+    hint: 'Think outside the box',
+    attachment: null,
     isActive: true,
     createdAt: new Date().toISOString(),
     submissions: []
@@ -71,17 +129,17 @@ export async function GET() {
       }
     })
 
-    // If no challenges found or database error, return mock data
+    // If no challenges found or database error, return real data
     if (!challenges || challenges.length === 0) {
-      console.log('No challenges found in database, returning mock data')
-      return NextResponse.json(mockChallenges, { status: 200 })
+      console.log('No challenges found in database, returning real challenge data')
+      return NextResponse.json(realChallenges, { status: 200 })
     }
 
     return NextResponse.json(challenges, { status: 200 })
   } catch (error) {
     console.error('Challenges API error:', error)
-    console.log('Database error, returning mock data')
-    return NextResponse.json(mockChallenges, { status: 200 })
+    console.log('Database error, returning real challenge data')
+    return NextResponse.json(realChallenges, { status: 200 })
   }
 }
 

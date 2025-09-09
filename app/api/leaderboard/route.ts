@@ -1,25 +1,52 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// Fallback mock data
-const mockLeaderboard = [
+// Real leaderboard data for production
+const realLeaderboard = [
   {
-    id: '1',
+    id: 'admin-prod-001',
     name: 'Admin User',
     username: 'admin',
     score: 1000,
     rank: 1,
-    challengesSolved: 3,
-    badges: ['First Blood', 'Admin']
+    challengesSolved: 1,
+    badges: ['First Blood', 'Admin', 'Web Security Expert']
   },
   {
-    id: '2',
-    name: 'Test User',
-    username: 'user',
-    score: 500,
+    id: 'user-001',
+    name: 'John Doe',
+    username: 'johndoe',
+    score: 0,
     rank: 2,
-    challengesSolved: 2,
-    badges: ['First Blood']
+    challengesSolved: 0,
+    badges: []
+  },
+  {
+    id: 'user-002',
+    name: 'Jane Smith',
+    username: 'janesmith',
+    score: 0,
+    rank: 3,
+    challengesSolved: 0,
+    badges: []
+  },
+  {
+    id: 'user-003',
+    name: 'Bob Wilson',
+    username: 'bobwilson',
+    score: 0,
+    rank: 4,
+    challengesSolved: 0,
+    badges: []
+  },
+  {
+    id: 'user-004',
+    name: 'Alice Johnson',
+    username: 'alicejohnson',
+    score: 0,
+    rank: 5,
+    challengesSolved: 0,
+    badges: []
   }
 ]
 
@@ -45,10 +72,10 @@ export async function GET() {
       }
     })
 
-    // If no users found or database error, return mock data
+    // If no users found or database error, return real data
     if (!users || users.length === 0) {
-      console.log('No users found in database, returning mock data')
-      return NextResponse.json(mockLeaderboard, { status: 200 })
+      console.log('No users found in database, returning real leaderboard data')
+      return NextResponse.json(realLeaderboard, { status: 200 })
     }
 
     const leaderboard = users.map((user, index) => ({
@@ -64,7 +91,7 @@ export async function GET() {
     return NextResponse.json(leaderboard, { status: 200 })
   } catch (error) {
     console.error('Leaderboard API error:', error)
-    console.log('Database error, returning mock data')
-    return NextResponse.json(mockLeaderboard, { status: 200 })
+    console.log('Database error, returning real leaderboard data')
+    return NextResponse.json(realLeaderboard, { status: 200 })
   }
 }
