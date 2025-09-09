@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { getUserById } from '@/lib/userStorage'
 
 // Global submissions storage
@@ -14,19 +15,35 @@ const submissions = global.__submissions
 
 export async function GET(request: NextRequest) {
   try {
-    // For now, return admin profile data
-    // TODO: Implement proper session handling
-    const userId = 'admin-prod-001'
+    // Get session from cookies
+    const cookieStore = cookies()
+    const sessionCookie = cookieStore.get('auth-session')
+    
+    if (!sessionCookie) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    
+    let sessionData
+    try {
+      sessionData = JSON.parse(sessionCookie.value)
+    } catch (parseError) {
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
+    }
+    
+    // Check if session is expired
+    if (new Date(sessionData.expires) < new Date()) {
+      return NextResponse.json({ error: 'Session expired' }, { status: 401 })
+    }
     
     // Get user data from storage
-    const user = getUserById(userId)
+    const user = getUserById(sessionData.user.id)
     
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
     // Get user submissions
-    const userSubmissions = submissions.filter(s => s.userId === userId)
+    const userSubmissions = submissions.filter(s => s.userId === sessionData.user.id)
     
     // Calculate stats
     const totalSubmissions = userSubmissions.length
