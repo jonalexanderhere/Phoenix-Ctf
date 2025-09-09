@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import bcrypt from 'bcryptjs'
+import { getUserByEmail } from '@/lib/userStorage'
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,51 +13,62 @@ export async function POST(request: NextRequest) {
     console.log('Simple login for:', email)
     console.log('Request body received:', { email, password: password ? '***' : 'missing' })
 
-    // Check if we're in production and handle accordingly
-    const isProduction = process.env.NODE_ENV === 'production'
-    console.log('Environment:', process.env.NODE_ENV, 'Is production:', isProduction)
+    // Find user in shared storage
+    const user = getUserByEmail(email)
 
-    // For both production and development, use hardcoded admin credentials
-    // This ensures the app works regardless of database availability
-    if (email === 'admin@ctf.com' && password === 'admin123') {
-      const sessionData = {
-        user: {
-          id: isProduction ? 'admin-prod-001' : 'admin-dev-001',
-          email: 'admin@ctf.com',
-          name: 'Admin User',
-          username: 'admin',
-          role: 'ADMIN',
-          score: 1000,
-        },
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-      }
-
-      // Set session cookie
-      try {
-        const cookieStore = cookies()
-        cookieStore.set('auth-session', JSON.stringify(sessionData), {
-          httpOnly: true,
-          secure: isProduction, // true for production, false for localhost
-          sameSite: 'lax',
-          maxAge: 24 * 60 * 60,
-          path: '/'
-        })
-      } catch (cookieError) {
-        console.error('Cookie setting error:', cookieError)
-      }
-
-      const response = {
-        success: true,
-        user: sessionData.user,
-        message: 'Login successful'
-      }
-      
-      console.log('Returning successful response:', response)
-      return NextResponse.json(response)
-    } else {
-      console.log('Invalid credentials')
+    if (!user) {
+      console.log('User not found:', email)
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
+
+    console.log('User found:', user.email, 'Role:', user.role)
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+
+    if (!isPasswordValid) {
+      console.log('Invalid password for user:', email)
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+    }
+
+    console.log('Password valid for user:', email)
+
+    // Create session data
+    const sessionData = {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        username: user.username,
+        role: user.role,
+        score: user.score,
+      },
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    }
+
+    // Set session cookie
+    try {
+      const cookieStore = cookies()
+      const isProduction = process.env.NODE_ENV === 'production'
+      cookieStore.set('auth-session', JSON.stringify(sessionData), {
+        httpOnly: true,
+        secure: isProduction, // true for production, false for localhost
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60,
+        path: '/'
+      })
+    } catch (cookieError) {
+      console.error('Cookie setting error:', cookieError)
+    }
+
+    const response = {
+      success: true,
+      user: sessionData.user,
+      message: 'Login successful'
+    }
+    
+    console.log('Returning successful response:', response)
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Simple login error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

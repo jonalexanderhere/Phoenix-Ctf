@@ -1,145 +1,45 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { cookies } from 'next/headers'
 
-// Real challenge data for production
-const realChallenges = [
-  {
-    id: '1',
-    title: 'Web Security Challenge',
-    description: 'Find the hidden flag in this web application. Look for common web vulnerabilities like SQL injection, XSS, or directory traversal.',
-    category: 'WEB',
-    difficulty: 'EASY',
-    points: 100,
-    flag: 'FLAG{web_security_101}',
-    hint: 'Check the source code and look for comments or hidden elements',
-    attachment: null,
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    submissions: [
-      {
-        id: '1',
-        userId: 'admin-prod-001',
-        challengeId: '1',
-        flag: 'FLAG{web_security_101}',
-        isCorrect: true,
-        submittedAt: new Date().toISOString(),
-        user: {
-          id: 'admin-prod-001',
-          name: 'Admin User',
-          username: 'admin'
-        }
-      }
-    ]
-  },
-  {
-    id: '2',
-    title: 'Cryptography Challenge',
-    description: 'Decrypt this message using the provided cipher. The message is: "Gur dhvpx oebja sbk whzcrq bire gur ynml qbt"',
-    category: 'CRYPTO',
-    difficulty: 'MEDIUM',
-    points: 200,
-    flag: 'FLAG{crypto_master}',
-    hint: 'Try Caesar cipher with shift 13 (ROT13)',
-    attachment: null,
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    submissions: []
-  },
-  {
-    id: '3',
-    title: 'Reverse Engineering',
-    description: 'Analyze this binary file and find the flag. The binary contains a simple password check.',
-    category: 'REVERSE',
-    difficulty: 'HARD',
-    points: 300,
-    flag: 'FLAG{reverse_engineer}',
-    hint: 'Use strings command to find readable text, or try a disassembler',
-    attachment: null,
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    submissions: []
-  },
-  {
-    id: '4',
-    title: 'Forensics Challenge',
-    description: 'A suspicious file was found on a compromised system. Analyze it to find the flag.',
-    category: 'FORENSICS',
-    difficulty: 'MEDIUM',
-    points: 250,
-    flag: 'FLAG{forensics_expert}',
-    hint: 'Check file metadata and look for hidden data',
-    attachment: null,
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    submissions: []
-  },
-  {
-    id: '5',
-    title: 'Binary Exploitation',
-    description: 'Exploit this vulnerable binary to get a shell and find the flag.',
-    category: 'PWN',
-    difficulty: 'HARD',
-    points: 400,
-    flag: 'FLAG{pwn_master}',
-    hint: 'Look for buffer overflow vulnerabilities',
-    attachment: null,
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    submissions: []
-  },
-  {
-    id: '6',
-    title: 'Miscellaneous Challenge',
-    description: 'This challenge doesn\'t fit into any specific category. Use your general knowledge and problem-solving skills.',
-    category: 'MISC',
-    difficulty: 'EASY',
-    points: 150,
-    flag: 'FLAG{misc_solver}',
-    hint: 'Think outside the box',
-    attachment: null,
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    submissions: []
+// In-memory challenge storage (shared with create API)
+let challenges: any[] = []
+
+async function getSession() {
+  try {
+    const cookieStore = cookies()
+    const sessionCookie = cookieStore.get('auth-session')
+    
+    if (!sessionCookie) {
+      return null
+    }
+    
+    const sessionData = JSON.parse(sessionCookie.value)
+    
+    // Check if session is expired
+    if (new Date(sessionData.expires) < new Date()) {
+      return null
+    }
+    
+    return sessionData
+  } catch (error) {
+    console.error('Session check error:', error)
+    return null
   }
-]
+}
 
 export async function GET() {
   try {
-    // Try to get data from database
-    const challenges = await prisma.challenge.findMany({
-      where: {
-        isActive: true
-      },
-      include: {
-        submissions: {
-          where: { isCorrect: true },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                username: true,
-              }
-            }
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
+    console.log('Getting challenges, current count:', challenges.length)
+    
+    // Return challenges sorted by creation date (newest first)
+    const sortedChallenges = challenges
+      .filter(c => c.isActive)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-    // If no challenges found or database error, return real data
-    if (!challenges || challenges.length === 0) {
-      console.log('No challenges found in database, returning real challenge data')
-      return NextResponse.json(realChallenges, { status: 200 })
-    }
-
-    return NextResponse.json(challenges, { status: 200 })
+    return NextResponse.json(sortedChallenges, { status: 200 })
   } catch (error) {
     console.error('Challenges API error:', error)
-    console.log('Database error, returning real challenge data')
-    return NextResponse.json(realChallenges, { status: 200 })
+    return NextResponse.json([], { status: 200 })
   }
 }
 

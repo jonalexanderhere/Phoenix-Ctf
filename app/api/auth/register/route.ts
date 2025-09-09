@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { addUser, getUserByEmail } from '@/lib/userStorage'
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,57 +42,45 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email },
-          { username }
-        ]
-      }
-    })
+    const existingUser = getUserByEmail(email)
 
     if (existingUser) {
-      if (existingUser.email === email) {
-        return NextResponse.json(
-          { error: 'User with this email already exists' },
-          { status: 400 }
-        )
-      } else {
-        return NextResponse.json(
-          { error: 'Username is already taken' },
-          { status: 400 }
-        )
-      }
+      return NextResponse.json(
+        { error: 'User with this email already exists' },
+        { status: 400 }
+      )
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    // Create user in database
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        username,
-        password: hashedPassword,
-        role: 'USER',
-        score: 0,
-        badges: JSON.stringify([])
-      }
-    })
+    // Create user in memory
+    const newUser = {
+      id: `user-${Date.now()}`,
+      name,
+      email,
+      username,
+      password: hashedPassword,
+      role: 'USER',
+      score: 0,
+      badges: JSON.stringify([]),
+      createdAt: new Date().toISOString()
+    }
+
+    addUser(newUser)
 
     return NextResponse.json(
       { 
         message: 'User created successfully', 
         user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          username: user.username,
-          role: user.role,
-          score: user.score,
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          username: newUser.username,
+          role: newUser.role,
+          score: newUser.score,
           badges: [],
-          createdAt: user.createdAt
+          createdAt: newUser.createdAt
         }
       },
       { status: 201 }
