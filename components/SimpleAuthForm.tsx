@@ -32,7 +32,7 @@ export function SimpleSignIn() {
 
       if (result?.error) {
         console.error('SignIn error:', result.error)
-        setError('Invalid credentials')
+        setError(`Login failed: ${result.error}`)
       } else if (result?.ok) {
         console.log('SignIn successful, redirecting...')
         // Redirect to home
@@ -40,7 +40,7 @@ export function SimpleSignIn() {
         router.refresh()
       } else {
         console.log('SignIn result unknown:', result)
-        setError('An unexpected error occurred')
+        setError('Login failed. Please check your credentials and try again.')
       }
     } catch (error) {
       console.error('Sign in error:', error)

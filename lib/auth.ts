@@ -5,7 +5,9 @@ import { prisma } from './prisma'
 import bcrypt from 'bcryptjs'
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  // Remove adapter for now to use JWT only
+  // adapter: PrismaAdapter(prisma),
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -62,6 +64,13 @@ export const authOptions: NextAuthOptions = {
             console.error('Database connection error during authentication')
           }
           
+          // Log the full error for debugging
+          console.error('Full error details:', {
+            message: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined,
+            name: error instanceof Error ? error.name : 'Unknown'
+          })
+          
           return null
         }
       }
@@ -87,7 +96,7 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       console.log('Session callback - token:', token ? 'present' : 'null', 'session.user:', session.user ? 'present' : 'null')
-      if (token && session.user) {
+      if (token && session?.user) {
         session.user.id = token.sub!
         session.user.role = token.role as string
         session.user.username = token.username as string
