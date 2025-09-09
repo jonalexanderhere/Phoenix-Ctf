@@ -1,34 +1,26 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    // Test database connection
-    let databaseStatus = 'unknown'
-    let databaseError = null
-    
-    try {
-      await prisma.$queryRaw`SELECT 1`
-      databaseStatus = 'connected'
-    } catch (error) {
-      databaseStatus = 'disconnected'
-      databaseError = error instanceof Error ? error.message : 'Unknown database error'
-    }
-
-    // Basic health check
+    // Basic health check without database dependency
     const health = {
-      status: databaseStatus === 'connected' ? 'ok' : 'degraded',
+      status: 'ok',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       environment: process.env.NODE_ENV,
       version: process.env.npm_package_version || '1.0.0',
       database: {
-        status: databaseStatus,
-        type: 'PostgreSQL',
-        error: databaseError
+        status: 'in-memory',
+        type: 'Memory Storage',
+        error: null
       },
-      auth: 'NextAuth + Prisma',
-      fallback: databaseStatus === 'disconnected' ? 'Mock data available' : null
+      auth: 'Simple Cookie-based Auth',
+      features: {
+        challengeCreation: 'Admin-only',
+        userRegistration: 'Available',
+        flagSubmission: 'Available',
+        leaderboard: 'Real-time'
+      }
     }
 
     return NextResponse.json(health, { status: 200 })
@@ -39,8 +31,7 @@ export async function GET() {
       {
         status: 'error',
         timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : 'Unknown error',
-        fallback: 'Mock data available'
+        error: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )
