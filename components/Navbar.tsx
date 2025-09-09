@@ -4,7 +4,9 @@ import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 
 export default function Navbar() {
-  const { data: session, status } = useSession()
+  const sessionData = useSession()
+  const session = sessionData?.data
+  const status = sessionData?.status
 
   const handleSignOut = () => {
     try {

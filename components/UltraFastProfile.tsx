@@ -8,7 +8,9 @@ import EmptyState from './EmptyState'
 import InstantLoading, { InstantSkeletonCard } from './InstantLoading'
 
 export default function UltraFastProfile() {
-  const { data: session, status } = useSession()
+  const sessionData = useSession()
+  const session = sessionData?.data
+  const status = sessionData?.status
   const router = useRouter()
   const [userData, setUserData] = useState<any>(null)
   const [loading, setLoading] = useState(false)

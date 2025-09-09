@@ -10,7 +10,8 @@ import InstantLoading, { InstantSkeletonCard } from './InstantLoading'
 import { safeFetch } from '@/lib/connectionManager'
 
 export default function UltraFastChallenges() {
-  const { status } = useSession()
+  const sessionData = useSession()
+  const status = sessionData?.status
   const router = useRouter()
   const [challenges, setChallenges] = useState<any[]>([])
   const [loading, setLoading] = useState(false)

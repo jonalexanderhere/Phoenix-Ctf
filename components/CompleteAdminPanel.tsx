@@ -29,7 +29,9 @@ interface NewChallenge {
 }
 
 export default function CompleteAdminPanel() {
-  const { data: session, status } = useSession()
+  const sessionData = useSession()
+  const session = sessionData?.data
+  const status = sessionData?.status
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'overview' | 'challenges' | 'users' | 'settings'>('overview')
   const [showCreateForm, setShowCreateForm] = useState(false)

@@ -4,18 +4,7 @@ import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-interface SignInForm {
-  email: string
-  password: string
-}
-
-interface SignUpForm {
-  name: string
-  email: string
-  username: string
-  password: string
-  confirmPassword: string
-}
+// Removed unused interfaces
 
 export function SimpleSignIn() {
   const [isLoading, setIsLoading] = useState(false)
