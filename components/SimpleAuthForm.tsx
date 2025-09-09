@@ -28,12 +28,19 @@ export function SimpleSignIn() {
         redirect: false,
       })
 
+      console.log('SignIn result:', result)
+
       if (result?.error) {
+        console.error('SignIn error:', result.error)
         setError('Invalid credentials')
       } else if (result?.ok) {
+        console.log('SignIn successful, redirecting...')
         // Redirect to home
         router.push('/')
         router.refresh()
+      } else {
+        console.log('SignIn result unknown:', result)
+        setError('An unexpected error occurred')
       }
     } catch (error) {
       console.error('Sign in error:', error)

@@ -19,6 +19,8 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
+          console.log('Attempting login for:', credentials.email)
+          
           const user = await prisma.user.findUnique({
             where: {
               email: credentials.email
@@ -30,6 +32,8 @@ export const authOptions: NextAuthOptions = {
             return null
           }
 
+          console.log('User found:', user.email, 'Role:', user.role)
+
           const isPasswordValid = await bcrypt.compare(
             credentials.password,
             user.password
@@ -39,6 +43,8 @@ export const authOptions: NextAuthOptions = {
             console.log('Invalid password for user:', credentials.email)
             return null
           }
+
+          console.log('Password valid for user:', credentials.email)
 
           return {
             id: user.id,
@@ -78,7 +84,7 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
-      if (token) {
+      if (token && session.user) {
         session.user.id = token.sub!
         session.user.role = token.role as string
         session.user.username = token.username as string
