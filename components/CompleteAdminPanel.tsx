@@ -165,7 +165,12 @@ export default function CompleteAdminPanel() {
       })
       
       setShowCreateForm(false)
-      refetchChallenges()
+      
+      // Refresh challenges immediately
+      await refetchChallenges()
+      
+      // Also refresh leaderboard to show updated stats
+      await fetchLeaderboard()
       
       alert('Challenge created successfully!')
     } catch (err) {

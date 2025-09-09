@@ -38,12 +38,14 @@ async function getSession() {
 export async function GET() {
   try {
     console.log('Getting challenges, current count:', challenges.length)
+    console.log('All challenges:', challenges.map(c => ({ id: c.id, title: c.title, isActive: c.isActive })))
     
     // Return challenges sorted by creation date (newest first)
     const sortedChallenges = challenges
       .filter(c => c.isActive)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
+    console.log('Returning active challenges:', sortedChallenges.length)
     return NextResponse.json(sortedChallenges, { status: 200 })
   } catch (error) {
     console.error('Challenges API error:', error)

@@ -24,6 +24,19 @@ export function useSimpleAuth() {
     checkSession()
   }, [])
 
+  // Prevent multiple simultaneous session checks
+  useEffect(() => {
+    if (loading) return
+    
+    const interval = setInterval(() => {
+      if (!loading) {
+        checkSession()
+      }
+    }, 30000) // Check every 30 seconds
+
+    return () => clearInterval(interval)
+  }, [loading])
+
   const checkSession = async () => {
     try {
       setLoading(true)

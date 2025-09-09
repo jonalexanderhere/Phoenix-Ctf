@@ -54,8 +54,9 @@ export function SimpleSignIn() {
         // Wait a moment for session to be set
         setTimeout(() => {
           router.push('/')
-          router.refresh()
-        }, 100)
+          // Force refresh to update session state
+          window.location.href = '/'
+        }, 500)
       } else {
         console.error('Login error:', result?.error || 'Unknown error')
         console.error('Response not ok or result not success:', { responseOk: response.ok, result })
