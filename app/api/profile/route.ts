@@ -1,17 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { getUserById } from '@/lib/userStorage'
-
-// Global submissions storage
-declare global {
-  var __submissions: any[] | undefined
-}
-
-if (!global.__submissions) {
-  global.__submissions = []
-}
-
-const submissions = global.__submissions
+import { getUserById } from '@/lib/supabaseUserStorage'
+import { getUserSubmissions } from '@/lib/supabaseSubmissionStorage'
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,15 +25,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Session expired' }, { status: 401 })
     }
     
-    // Get user data from storage
-    const user = getUserById(sessionData.user.id)
+    // Get user data from Supabase
+    const user = await getUserById(sessionData.user.id)
     
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Get user submissions
-    const userSubmissions = submissions.filter(s => s.userId === sessionData.user.id)
+    // Get user submissions from Supabase
+    const userSubmissions = await getUserSubmissions(sessionData.user.id)
     
     // Calculate stats
     const totalSubmissions = userSubmissions.length
@@ -53,7 +43,7 @@ export async function GET(request: NextRequest) {
     // Prepare profile data
     const profileData = {
       ...user,
-      submissions: userSubmissions.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()),
+      submissions: userSubmissions.sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()),
       stats: {
         totalSubmissions,
         solvedChallenges,

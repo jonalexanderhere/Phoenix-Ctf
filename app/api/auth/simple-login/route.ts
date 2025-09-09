@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import bcrypt from 'bcryptjs'
-import { getUserByEmail } from '@/lib/userStorage'
+import { getUserByEmail } from '@/lib/supabaseUserStorage'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,8 +13,8 @@ export async function POST(request: NextRequest) {
     console.log('Simple login for:', email)
     console.log('Request body received:', { email, password: password ? '***' : 'missing' })
 
-    // Find user in shared storage
-    const user = getUserByEmail(email)
+    // Find user in Supabase
+    const user = await getUserByEmail(email)
 
     if (!user) {
       console.log('User not found:', email)

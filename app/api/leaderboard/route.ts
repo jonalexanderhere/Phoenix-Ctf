@@ -1,26 +1,19 @@
 import { NextResponse } from 'next/server'
-import { getAllUsers } from '@/lib/userStorage'
-
-// Global submissions storage for counting solved challenges
-declare global {
-  var __submissions: any[] | undefined
-}
-
-if (!global.__submissions) {
-  global.__submissions = []
-}
-
-const submissions = global.__submissions
+import { getAllUsers } from '@/lib/supabaseUserStorage'
+import { getAllSubmissions } from '@/lib/supabaseSubmissionStorage'
 
 export async function GET() {
   try {
-    // Get all users from shared storage
-    const users = getAllUsers()
+    // Get all users from Supabase
+    const users = await getAllUsers()
+    
+    // Get all submissions from Supabase
+    const submissions = await getAllSubmissions()
     
     // Count solved challenges for each user
     const leaderboard = users.map((user, index) => {
       const solvedChallenges = submissions.filter(
-        s => s.userId === user.id && s.isCorrect
+        s => s.user_id === user.id && s.is_correct
       ).length
       
       return {
@@ -39,7 +32,7 @@ export async function GET() {
       user.rank = index + 1
     })
 
-    console.log('Leaderboard data:', leaderboard)
+    console.log('Leaderboard data from Supabase:', leaderboard)
     return NextResponse.json(leaderboard, { status: 200 })
   } catch (error) {
     console.error('Leaderboard API error:', error)

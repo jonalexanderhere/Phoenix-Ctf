@@ -1,16 +1,5 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-
-// Global challenge storage
-declare global {
-  var __challenges: any[] | undefined
-}
-
-if (!global.__challenges) {
-  global.__challenges = []
-}
-
-const challenges = global.__challenges
+import { getAllChallenges, createChallenge } from '@/lib/supabaseChallengeStorage'
 
 async function getSession() {
   try {
@@ -37,16 +26,12 @@ async function getSession() {
 
 export async function GET() {
   try {
-    console.log('Getting challenges, current count:', challenges.length)
-    console.log('All challenges:', challenges.map(c => ({ id: c.id, title: c.title, isActive: c.isActive })))
+    console.log('Getting challenges from Supabase...')
     
-    // Return challenges sorted by creation date (newest first)
-    const sortedChallenges = challenges
-      .filter(c => c.isActive)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-
-    console.log('Returning active challenges:', sortedChallenges.length)
-    return NextResponse.json(sortedChallenges, { status: 200 })
+    const challenges = await getAllChallenges()
+    console.log('Returning active challenges:', challenges.length)
+    
+    return NextResponse.json(challenges, { status: 200 })
   } catch (error) {
     console.error('Challenges API error:', error)
     return NextResponse.json([], { status: 200 })
@@ -73,26 +58,19 @@ export async function POST(request: Request) {
       )
     }
     
-    // Create challenge in memory storage
-    const challenge = {
-      id: `challenge-${Date.now()}`,
+    // Create challenge in Supabase
+    const challenge = await createChallenge({
       title: body.title,
       description: body.description,
       category: body.category,
       difficulty: body.difficulty,
       points: body.points,
       flag: body.flag,
-      hint: body.hint || null,
-      attachment: body.attachment || null,
-      isActive: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      submissions: []
-    }
+      hint: body.hint,
+      attachment: body.attachment
+    })
     
-    challenges.push(challenge)
-    
-    console.log('Challenge created:', challenge)
+    console.log('Challenge created in Supabase:', challenge.title)
     return NextResponse.json(challenge, { status: 201 })
   } catch (error) {
     console.error('Create challenge error:', error)

@@ -1,16 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-
-// Global submissions storage
-declare global {
-  var __submissions: any[] | undefined
-}
-
-if (!global.__submissions) {
-  global.__submissions = []
-}
-
-const submissions = global.__submissions
+import { getUserSubmissions } from '@/lib/supabaseSubmissionStorage'
 
 async function getSession() {
   try {
@@ -53,17 +43,15 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    // Filter submissions based on parameters
-    let filteredSubmissions = submissions
+    // Get user submissions from Supabase
+    let filteredSubmissions = await getUserSubmissions(session.user.id)
     
     if (challengeId) {
-      filteredSubmissions = filteredSubmissions.filter(s => s.challengeId === challengeId)
+      filteredSubmissions = filteredSubmissions.filter(s => s.challenge_id === challengeId)
     }
     
     if (userId && session.user.role === 'ADMIN') {
-      filteredSubmissions = filteredSubmissions.filter(s => s.userId === userId)
-    } else {
-      filteredSubmissions = filteredSubmissions.filter(s => s.userId === session.user.id)
+      filteredSubmissions = await getUserSubmissions(userId)
     }
 
     // Apply pagination

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
-import { addUser, getUserByEmail } from '@/lib/userStorage'
+import { addUser, getUserByEmail } from '@/lib/supabaseUserStorage'
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = getUserByEmail(email)
+    const existingUser = await getUserByEmail(email)
 
     if (existingUser) {
       return NextResponse.json(
@@ -51,23 +50,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12)
-
-    // Create user in memory
-    const newUser = {
-      id: `user-${Date.now()}`,
+    // Create user in Supabase
+    const newUser = await addUser({
       name,
       email,
       username,
-      password: hashedPassword,
-      role: 'USER',
-      score: 0,
-      badges: JSON.stringify([]),
-      createdAt: new Date().toISOString()
-    }
-
-    addUser(newUser)
+      password
+    })
 
     return NextResponse.json(
       { 
@@ -79,8 +68,8 @@ export async function POST(request: NextRequest) {
           username: newUser.username,
           role: newUser.role,
           score: newUser.score,
-          badges: [],
-          createdAt: newUser.createdAt
+          badges: JSON.parse(newUser.badges),
+          createdAt: newUser.created_at
         }
       },
       { status: 201 }
