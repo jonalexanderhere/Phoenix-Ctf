@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { updateUserScore } from '@/lib/userStorage'
 
 // Global submissions storage
 declare global {
@@ -48,24 +49,23 @@ async function getSession() {
 
 export async function POST(request: NextRequest) {
   try {
-    // For testing, skip session check
+    // For testing, use mock session
+    const session = {
+      user: {
+        id: 'user-1757430008886',
+        email: 'test2@example.com',
+        name: 'Test User 2',
+        username: 'testuser2',
+        role: 'USER',
+        score: 0
+      }
+    }
+    
     // const session = await getSession()
     
     // if (!session) {
     //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     // }
-    
-    // Mock session for testing
-    const session = {
-      user: {
-        id: 'test-user-001',
-        email: 'test@example.com',
-        name: 'Test User',
-        username: 'testuser',
-        role: 'USER',
-        score: 0
-      }
-    }
 
     const body = await request.json()
     const { challengeId, flag } = body
@@ -123,6 +123,9 @@ export async function POST(request: NextRequest) {
     })
 
     if (isCorrect) {
+      // Update user score
+      updateUserScore(session.user.id, challenge.points)
+      
       return NextResponse.json({
         success: true,
         message: 'Congratulations! You solved the challenge!',

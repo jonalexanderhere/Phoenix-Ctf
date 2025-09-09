@@ -10,7 +10,7 @@ if (!global.__users) {
       name: 'Admin User',
       email: 'admin@ctf.com',
       username: 'admin',
-      password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4V.8Qz8K2', // admin123
+      password: '$2b$12$wDuNwtyQOiO7HpuG5TG6Nu3sLzSteQ7dvMR4M8OcfNmRM968WXIf.', // admin123
       role: 'ADMIN',
       score: 1000,
       badges: JSON.stringify(['First Blood', 'Admin', 'Web Security Expert']),
