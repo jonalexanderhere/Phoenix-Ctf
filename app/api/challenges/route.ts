@@ -1,8 +1,16 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
-// In-memory challenge storage (shared with create API)
-let challenges: any[] = []
+// Global challenge storage
+declare global {
+  var __challenges: any[] | undefined
+}
+
+if (!global.__challenges) {
+  global.__challenges = []
+}
+
+const challenges = global.__challenges
 
 async function getSession() {
   try {
