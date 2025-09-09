@@ -34,7 +34,7 @@ export default function CompleteAdminPanel() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'overview' | 'challenges' | 'users' | 'settings'>('overview')
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
   const [newChallenge, setNewChallenge] = useState<NewChallenge>({
@@ -117,7 +117,7 @@ export default function CompleteAdminPanel() {
 
   const handleCreateChallenge = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
+    setIsLoading(true)
     setError(null)
 
     try {
@@ -150,7 +150,7 @@ export default function CompleteAdminPanel() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create challenge')
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
@@ -406,10 +406,10 @@ export default function CompleteAdminPanel() {
                   <div className="flex space-x-4">
                     <button
                       type="submit"
-                      disabled={loading}
+                      disabled={isLoading}
                       className="btn btn-primary"
                     >
-                      {loading ? 'Creating...' : 'Create Challenge'}
+                      {isLoading ? 'Creating...' : 'Create Challenge'}
                     </button>
                     <button
                       type="button"
