@@ -30,7 +30,14 @@ export function SimpleSignIn() {
         body: JSON.stringify({ email, password }),
       })
 
-      const result = await response.json()
+      let result
+      try {
+        result = await response.json()
+      } catch (parseError) {
+        console.error('Response parse error:', parseError)
+        setError('Server returned invalid response. Please try again.')
+        return
+      }
 
       console.log('Simple login result:', result)
 

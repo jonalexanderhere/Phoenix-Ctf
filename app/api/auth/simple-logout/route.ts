@@ -12,6 +12,10 @@ export async function POST() {
     })
   } catch (error) {
     console.error('Logout error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    // Even if cookie deletion fails, we should return success
+    return NextResponse.json({
+      success: true,
+      message: 'Logout successful'
+    })
   }
 }

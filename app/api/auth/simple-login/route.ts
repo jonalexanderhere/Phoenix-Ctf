@@ -46,14 +46,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Set session cookie
-    const cookieStore = cookies()
-    cookieStore.set('auth-session', JSON.stringify(sessionData), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60, // 24 hours
-      path: '/'
-    })
+    try {
+      const cookieStore = cookies()
+      cookieStore.set('auth-session', JSON.stringify(sessionData), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60, // 24 hours
+        path: '/'
+      })
+    } catch (cookieError) {
+      console.error('Cookie setting error:', cookieError)
+      // Continue without cookie if there's an error
+    }
 
     return NextResponse.json({
       success: true,

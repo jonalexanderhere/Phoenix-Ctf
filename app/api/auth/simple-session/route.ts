@@ -10,7 +10,15 @@ export async function GET() {
       return NextResponse.json({ error: 'No session found' }, { status: 401 })
     }
 
-    const sessionData = JSON.parse(sessionCookie.value)
+    let sessionData
+    try {
+      sessionData = JSON.parse(sessionCookie.value)
+    } catch (parseError) {
+      console.error('Session parse error:', parseError)
+      // Clear invalid session
+      cookieStore.delete('auth-session')
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
+    }
 
     // Check if session is expired
     if (new Date(sessionData.expires) < new Date()) {
