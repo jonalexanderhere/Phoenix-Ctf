@@ -22,6 +22,8 @@ export function SimpleSignIn() {
       const email = formData.get('email') as string
       const password = formData.get('password') as string
 
+      console.log('Starting login process for:', email)
+      
       const response = await fetch('/api/auth/simple-login', {
         method: 'POST',
         headers: {
@@ -30,9 +32,13 @@ export function SimpleSignIn() {
         body: JSON.stringify({ email, password }),
       })
 
+      console.log('Response status:', response.status)
+      console.log('Response ok:', response.ok)
+
       let result
       try {
         result = await response.json()
+        console.log('Parsed result:', result)
       } catch (parseError) {
         console.error('Response parse error:', parseError)
         setError('Server returned invalid response. Please try again.')
@@ -41,18 +47,32 @@ export function SimpleSignIn() {
 
       console.log('Simple login result:', result)
 
-      if (response.ok && result.success) {
+      if (response.ok && result && result.success) {
         console.log('Login successful, redirecting...')
         // Redirect to home
         router.push('/')
         router.refresh()
       } else {
-        console.error('Login error:', result.error)
-        setError(result.error || 'Login failed. Please check your credentials and try again.')
+        console.error('Login error:', result?.error || 'Unknown error')
+        console.error('Response not ok or result not success:', { responseOk: response.ok, result })
+        setError(result?.error || 'Login failed. Please check your credentials and try again.')
       }
     } catch (error) {
       console.error('Sign in error:', error)
-      setError('An error occurred. Please try again.')
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : 'Unknown'
+      })
+      
+      // More specific error messages
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        setError('Network error. Please check your connection and try again.')
+      } else if (error instanceof Error && error.message.includes('JSON')) {
+        setError('Server returned invalid response. Please try again.')
+      } else {
+        setError('An error occurred. Please try again.')
+      }
     } finally {
       setIsLoading(false)
     }

@@ -5,10 +5,13 @@ import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Simple login API called')
+    
     const body = await request.json()
     const { email, password } = body
 
     console.log('Simple login for:', email)
+    console.log('Request body received:', { email, password: password ? '***' : 'missing' })
 
     // Find user in database
     const user = await prisma.user.findUnique({
@@ -60,11 +63,15 @@ export async function POST(request: NextRequest) {
       // Continue without cookie if there's an error
     }
 
-    return NextResponse.json({
+    const response = {
       success: true,
       user: sessionData.user,
       message: 'Login successful'
-    })
+    }
+    
+    console.log('Returning successful response:', response)
+    
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Simple login error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
