@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
+// import { signIn } from 'next-auth/react' // Not used in simple auth
 import Link from 'next/link'
 
 export function SimpleSignIn() {

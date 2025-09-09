@@ -98,21 +98,42 @@ export default function CompleteAdminPanel() {
   // const refetchLeaderboard = fetchLeaderboard // Unused for now
 
   useEffect(() => {
-    if (status === 'loading') return
-    
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin')
+    // Wait for authentication to complete
+    if (status === 'loading') {
+      console.log('Admin panel: Waiting for authentication...')
       return
     }
     
-    if (session?.user?.role !== 'ADMIN') {
-      router.push('/profile')
-      return
-    }
+    console.log('Admin panel: Authentication status:', status)
+    console.log('Admin panel: Session:', session)
+    
+    // Give a small delay to ensure session is properly loaded
+    const checkAuth = setTimeout(() => {
+      if (status === 'unauthenticated') {
+        console.log('Admin panel: User not authenticated, redirecting to signin')
+        router.push('/auth/signin')
+        return
+      }
+      
+      if (!session?.user) {
+        console.log('Admin panel: No user in session, redirecting to signin')
+        router.push('/auth/signin')
+        return
+      }
+      
+      if (session?.user?.role !== 'ADMIN') {
+        console.log('Admin panel: User is not admin, redirecting to profile')
+        router.push('/profile')
+        return
+      }
 
-    // Fetch data when component mounts
-    fetchChallenges()
-    fetchLeaderboard()
+      console.log('Admin panel: User is authenticated admin, loading data')
+      // Fetch data when component mounts
+      fetchChallenges()
+      fetchLeaderboard()
+    }, 500) // 500ms delay to ensure session is loaded
+
+    return () => clearTimeout(checkAuth)
   }, [status, router, session])
 
   const handleCreateChallenge = async (e: React.FormEvent) => {
