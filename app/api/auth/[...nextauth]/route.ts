@@ -1,16 +1,6 @@
-import { NextResponse } from 'next/server'
+import NextAuth from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
-// Simple NextAuth handler that doesn't use database
-export async function GET() {
-  return NextResponse.json({ 
-    message: 'NextAuth endpoint active',
-    status: 'ok'
-  })
-}
+const handler = NextAuth(authOptions)
 
-export async function POST() {
-  return NextResponse.json({ 
-    message: 'NextAuth endpoint active',
-    status: 'ok'
-  })
-}
+export { handler as GET, handler as POST }

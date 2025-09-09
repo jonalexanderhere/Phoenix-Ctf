@@ -76,19 +76,23 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
+      console.log('JWT callback - user:', user ? 'present' : 'null', 'token:', token ? 'present' : 'null')
       if (user) {
         token.role = user.role
         token.username = user.username
         token.score = user.score
+        console.log('JWT token updated with user data:', { role: user.role, username: user.username, score: user.score })
       }
       return token
     },
     async session({ session, token }) {
+      console.log('Session callback - token:', token ? 'present' : 'null', 'session.user:', session.user ? 'present' : 'null')
       if (token && session.user) {
         session.user.id = token.sub!
         session.user.role = token.role as string
         session.user.username = token.username as string
         session.user.score = token.score as number
+        console.log('Session updated with token data:', { id: session.user.id, role: session.user.role, username: session.user.username, score: session.user.score })
       }
       return session
     },
