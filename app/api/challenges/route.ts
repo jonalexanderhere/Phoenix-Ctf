@@ -71,32 +71,29 @@ export async function POST(request: Request) {
       )
     }
     
-    const challenge = await prisma.challenge.create({
-      data: {
-        title: body.title,
-        description: body.description,
-        category: body.category,
-        difficulty: body.difficulty,
-        points: body.points,
-        flag: body.flag,
-        hint: body.hint || null,
-        attachment: body.attachment || null,
-        isActive: true
-      }
-    })
+    // Create challenge in memory storage
+    const challenge = {
+      id: `challenge-${Date.now()}`,
+      title: body.title,
+      description: body.description,
+      category: body.category,
+      difficulty: body.difficulty,
+      points: body.points,
+      flag: body.flag,
+      hint: body.hint || null,
+      attachment: body.attachment || null,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      submissions: []
+    }
     
+    challenges.push(challenge)
+    
+    console.log('Challenge created:', challenge)
     return NextResponse.json(challenge, { status: 201 })
   } catch (error) {
     console.error('Create challenge error:', error)
-    
-    // Handle specific Prisma errors
-    if (error instanceof Error && error.message.includes('Unique constraint')) {
-      return NextResponse.json(
-        { error: 'Challenge with this title already exists' },
-        { status: 409 }
-      )
-    }
-    
     return NextResponse.json(
       { error: 'Failed to create challenge' },
       { status: 500 }
