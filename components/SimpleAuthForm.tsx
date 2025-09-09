@@ -22,25 +22,26 @@ export function SimpleSignIn() {
       const email = formData.get('email') as string
       const password = formData.get('password') as string
 
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
+      const response = await fetch('/api/auth/simple-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       })
 
-      console.log('SignIn result:', result)
+      const result = await response.json()
 
-      if (result?.error) {
-        console.error('SignIn error:', result.error)
-        setError(`Login failed: ${result.error}`)
-      } else if (result?.ok) {
-        console.log('SignIn successful, redirecting...')
+      console.log('Simple login result:', result)
+
+      if (response.ok && result.success) {
+        console.log('Login successful, redirecting...')
         // Redirect to home
         router.push('/')
         router.refresh()
       } else {
-        console.log('SignIn result unknown:', result)
-        setError('Login failed. Please check your credentials and try again.')
+        console.error('Login error:', result.error)
+        setError(result.error || 'Login failed. Please check your credentials and try again.')
       }
     } catch (error) {
       console.error('Sign in error:', error)

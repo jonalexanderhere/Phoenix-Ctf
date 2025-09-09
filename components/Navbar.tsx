@@ -1,16 +1,16 @@
 'use client'
 
-import { useSession, signOut } from 'next-auth/react'
+import { useSimpleAuth } from '@/hooks/useSimpleAuth'
 import Link from 'next/link'
 
 export default function Navbar() {
-  const sessionData = useSession()
-  const session = sessionData?.data
-  const status = sessionData?.status
+  const { session, loading, signOut } = useSimpleAuth()
+  const status = loading ? 'loading' : (session ? 'authenticated' : 'unauthenticated')
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     try {
-      signOut({ callbackUrl: '/' })
+      await signOut()
+      window.location.href = '/'
     } catch (error) {
       console.error('Sign out error:', error)
       // Fallback: redirect to home page
