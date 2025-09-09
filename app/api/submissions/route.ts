@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
+// Global submissions storage
+declare global {
+  var __submissions: any[] | undefined
+}
+
+if (!global.__submissions) {
+  global.__submissions = []
+}
+
+const submissions = global.__submissions
+
 async function getSession() {
   try {
     const cookieStore = cookies()
@@ -42,32 +53,8 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    // Mock submissions data for production
-    const mockSubmissions = [
-      {
-        id: '1',
-        userId: 'admin-prod-001',
-        challengeId: '1',
-        flag: 'FLAG{web_security_101}',
-        isCorrect: true,
-        submittedAt: new Date().toISOString(),
-        challenge: {
-          id: '1',
-          title: 'Web Security Challenge',
-          category: 'WEB',
-          difficulty: 'EASY',
-          points: 100
-        },
-        user: {
-          id: 'admin-prod-001',
-          name: 'Admin User',
-          username: 'admin'
-        }
-      }
-    ]
-
     // Filter submissions based on parameters
-    let filteredSubmissions = mockSubmissions
+    let filteredSubmissions = submissions
     
     if (challengeId) {
       filteredSubmissions = filteredSubmissions.filter(s => s.challengeId === challengeId)

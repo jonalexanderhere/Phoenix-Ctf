@@ -1,97 +1,48 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { getAllUsers } from '@/lib/userStorage'
 
-// Real leaderboard data for production
-const realLeaderboard = [
-  {
-    id: 'admin-prod-001',
-    name: 'Admin User',
-    username: 'admin',
-    score: 1000,
-    rank: 1,
-    challengesSolved: 1,
-    badges: ['First Blood', 'Admin', 'Web Security Expert']
-  },
-  {
-    id: 'user-001',
-    name: 'John Doe',
-    username: 'johndoe',
-    score: 0,
-    rank: 2,
-    challengesSolved: 0,
-    badges: []
-  },
-  {
-    id: 'user-002',
-    name: 'Jane Smith',
-    username: 'janesmith',
-    score: 0,
-    rank: 3,
-    challengesSolved: 0,
-    badges: []
-  },
-  {
-    id: 'user-003',
-    name: 'Bob Wilson',
-    username: 'bobwilson',
-    score: 0,
-    rank: 4,
-    challengesSolved: 0,
-    badges: []
-  },
-  {
-    id: 'user-004',
-    name: 'Alice Johnson',
-    username: 'alicejohnson',
-    score: 0,
-    rank: 5,
-    challengesSolved: 0,
-    badges: []
-  }
-]
+// Global submissions storage for counting solved challenges
+declare global {
+  var __submissions: any[] | undefined
+}
+
+if (!global.__submissions) {
+  global.__submissions = []
+}
+
+const submissions = global.__submissions
 
 export async function GET() {
   try {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        username: true,
-        score: true,
-        badges: true,
-        submissions: {
-          where: { isCorrect: true },
-          select: {
-            challengeId: true,
-            submittedAt: true
-          }
-        }
-      },
-      orderBy: {
-        score: 'desc'
+    // Get all users from shared storage
+    const users = getAllUsers()
+    
+    // Count solved challenges for each user
+    const leaderboard = users.map((user, index) => {
+      const solvedChallenges = submissions.filter(
+        s => s.userId === user.id && s.isCorrect
+      ).length
+      
+      return {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        score: user.score,
+        rank: index + 1,
+        challengesSolved: solvedChallenges,
+        badges: user.badges ? JSON.parse(user.badges) : []
       }
+    }).sort((a, b) => b.score - a.score) // Sort by score descending
+
+    // Update ranks after sorting
+    leaderboard.forEach((user, index) => {
+      user.rank = index + 1
     })
 
-    // If no users found or database error, return real data
-    if (!users || users.length === 0) {
-      console.log('No users found in database, returning real leaderboard data')
-      return NextResponse.json(realLeaderboard, { status: 200 })
-    }
-
-    const leaderboard = users.map((user, index) => ({
-      id: user.id,
-      name: user.name,
-      username: user.username,
-      score: user.score || 0,
-      rank: index + 1,
-      challengesSolved: user.submissions.length,
-      badges: user.badges ? JSON.parse(user.badges) : []
-    }))
-
+    console.log('Leaderboard data:', leaderboard)
     return NextResponse.json(leaderboard, { status: 200 })
   } catch (error) {
     console.error('Leaderboard API error:', error)
-    console.log('Database error, returning real leaderboard data')
-    return NextResponse.json(realLeaderboard, { status: 200 })
+    return NextResponse.json([], { status: 200 })
   }
 }
