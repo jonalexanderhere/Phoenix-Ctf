@@ -47,11 +47,11 @@ export default function Navbar() {
           <div className="flex items-center space-x-4">
             {status === 'loading' ? (
               <div className="animate-pulse bg-gray-200 h-8 w-20 rounded"></div>
-            ) : session ? (
+            ) : session?.user ? (
               <div className="flex items-center space-x-4">
                 <div className="text-sm">
-                  <p className="font-medium text-gray-900">{session.user.name}</p>
-                  <p className="text-gray-500">Score: {session.user.score}</p>
+                  <p className="font-medium text-gray-900">{session.user.name || session.user.username || 'User'}</p>
+                  <p className="text-gray-500">Score: {session.user.score || 0}</p>
                 </div>
                 <button
                   onClick={handleSignOut}

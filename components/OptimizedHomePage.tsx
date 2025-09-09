@@ -155,7 +155,7 @@ const MainContent = () => {
         </div>
 
         {/* Stats Section */}
-        {session && <UserStats score={session.user.score} />}
+        {session?.user && <UserStats score={session.user.score || 0} />}
       </main>
     </div>
   )
