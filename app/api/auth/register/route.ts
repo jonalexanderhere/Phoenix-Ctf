@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserByEmail, createUser } from '@/lib/localAuth'
+import { prisma } from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,23 +32,53 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user already exists
-    const existingUser = getUserByEmail(email)
-    if (existingUser) {
+    // Validate username format
+    const usernameRegex = /^[a-zA-Z0-9_]+$/
+    if (!usernameRegex.test(username)) {
       return NextResponse.json(
-        { error: 'User with this email already exists' },
+        { error: 'Username can only contain letters, numbers, and underscores' },
         { status: 400 }
       )
     }
 
-    // Create user
-    const user = createUser({
-      name,
-      email,
-      username,
-      role: 'USER',
-      score: 0,
-      badges: []
+    // Check if user already exists
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email },
+          { username }
+        ]
+      }
+    })
+
+    if (existingUser) {
+      if (existingUser.email === email) {
+        return NextResponse.json(
+          { error: 'User with this email already exists' },
+          { status: 400 }
+        )
+      } else {
+        return NextResponse.json(
+          { error: 'Username is already taken' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 12)
+
+    // Create user in database
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        username,
+        password: hashedPassword,
+        role: 'USER',
+        score: 0,
+        badges: JSON.stringify([])
+      }
     })
 
     return NextResponse.json(
@@ -60,7 +91,7 @@ export async function POST(request: NextRequest) {
           username: user.username,
           role: user.role,
           score: user.score,
-          badges: user.badges,
+          badges: [],
           createdAt: user.createdAt
         }
       },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { login, getSession } from '@/lib/localAuth'
+import { prisma } from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,9 +14,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const user = login(email, password)
-    
+    // Find user in database
+    const user = await prisma.user.findUnique({
+      where: { email }
+    })
+
     if (!user) {
+      return NextResponse.json(
+        { error: 'Invalid credentials' },
+        { status: 401 }
+      )
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+
+    if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -29,8 +43,8 @@ export async function POST(request: NextRequest) {
         name: user.name,
         username: user.username,
         role: user.role,
-        score: user.score,
-        badges: user.badges
+        score: user.score || 0,
+        badges: user.badges ? JSON.parse(user.badges) : []
       },
       message: 'Login successful'
     })
@@ -45,27 +59,12 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const session = getSession()
-    
-    if (!session) {
-      return NextResponse.json(
-        { error: 'No active session' },
-        { status: 401 }
-      )
-    }
-
-    return NextResponse.json({
-      user: {
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.name,
-        username: session.user.username,
-        role: session.user.role,
-        score: session.user.score,
-        badges: session.user.badges
-      },
-      expires: session.expires
-    })
+    // This endpoint is not needed for real authentication
+    // NextAuth handles session management
+    return NextResponse.json(
+      { error: 'Use NextAuth session endpoint' },
+      { status: 404 }
+    )
   } catch (error) {
     console.error('Session check error:', error)
     return NextResponse.json(
