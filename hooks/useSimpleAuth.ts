@@ -26,11 +26,33 @@ export function useSimpleAuth() {
 
   const checkSession = async () => {
     try {
-      const response = await fetch('/api/auth/simple-session')
+      setLoading(true)
+      const response = await fetch('/api/auth/simple-session', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store'
+      })
+      
+      console.log('Session check response status:', response.status)
+      
       if (response.ok) {
-        const data = await response.json()
-        setSession(data)
+        try {
+          const data = await response.json()
+          console.log('Session data received:', data)
+          if (data && data.user) {
+            setSession(data)
+          } else {
+            console.log('Invalid session data structure')
+            setSession(null)
+          }
+        } catch (parseError) {
+          console.error('Session data parse error:', parseError)
+          setSession(null)
+        }
       } else {
+        console.log('Session check failed with status:', response.status)
         setSession(null)
       }
     } catch (error) {
@@ -43,10 +65,27 @@ export function useSimpleAuth() {
 
   const signOut = async () => {
     try {
-      await fetch('/api/auth/simple-logout', { method: 'POST' })
+      console.log('Attempting to sign out...')
+      const response = await fetch('/api/auth/simple-logout', { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      
+      console.log('Logout response status:', response.status)
+      
+      if (response.ok) {
+        console.log('Logout successful')
+      } else {
+        console.log('Logout failed with status:', response.status)
+      }
+      
       setSession(null)
     } catch (error) {
       console.error('Logout error:', error)
+      // Even if logout fails, clear local session
+      setSession(null)
     }
   }
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSimpleAuth } from '@/hooks/useSimpleAuth'
 import { useRouter } from 'next/navigation'
 import Navbar from './Navbar'
 import ChallengeCard from './ChallengeCard'
@@ -10,8 +10,8 @@ import InstantLoading, { InstantSkeletonCard } from './InstantLoading'
 import { safeFetch } from '@/lib/connectionManager'
 
 export default function UltraFastChallenges() {
-  const sessionData = useSession()
-  const status = sessionData?.status
+  const { session, loading: authLoading } = useSimpleAuth()
+  const status = authLoading ? 'loading' : (session ? 'authenticated' : 'unauthenticated')
   const router = useRouter()
   const [challenges, setChallenges] = useState<any[]>([])
   const [loading, setLoading] = useState(false)

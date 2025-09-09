@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSimpleAuth } from '@/hooks/useSimpleAuth'
 import { useRouter } from 'next/navigation'
 import Navbar from './Navbar'
 import LoadingSpinner from './LoadingSpinner'
@@ -29,9 +29,8 @@ interface NewChallenge {
 }
 
 export default function CompleteAdminPanel() {
-  const sessionData = useSession()
-  const session = sessionData?.data
-  const status = sessionData?.status
+  const { session, loading: authLoading } = useSimpleAuth()
+  const status = authLoading ? 'loading' : (session ? 'authenticated' : 'unauthenticated')
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'overview' | 'challenges' | 'users' | 'settings'>('overview')
   const [showCreateForm, setShowCreateForm] = useState(false)

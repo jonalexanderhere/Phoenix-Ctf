@@ -49,9 +49,13 @@ export function SimpleSignIn() {
 
       if (response.ok && result && result.success) {
         console.log('Login successful, redirecting...')
-        // Redirect to home
-        router.push('/')
-        router.refresh()
+        // Clear any previous errors
+        setError('')
+        // Wait a moment for session to be set
+        setTimeout(() => {
+          router.push('/')
+          router.refresh()
+        }, 100)
       } else {
         console.error('Login error:', result?.error || 'Unknown error')
         console.error('Response not ok or result not success:', { responseOk: response.ok, result })

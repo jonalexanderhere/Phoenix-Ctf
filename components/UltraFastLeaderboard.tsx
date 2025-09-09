@@ -1,16 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSimpleAuth } from '@/hooks/useSimpleAuth'
 import { useRouter } from 'next/navigation'
 import Navbar from './Navbar'
 import EmptyState from './EmptyState'
 import InstantLoading, { InstantSkeletonCard } from './InstantLoading'
 
 export default function UltraFastLeaderboard() {
-  const sessionData = useSession()
-  const session = sessionData?.data
-  const status = sessionData?.status
+  const { session, loading: authLoading } = useSimpleAuth()
+  const status = authLoading ? 'loading' : (session ? 'authenticated' : 'unauthenticated')
   const router = useRouter()
   const [leaderboard, setLeaderboard] = useState<any[]>([])
   const [loading, setLoading] = useState(false)

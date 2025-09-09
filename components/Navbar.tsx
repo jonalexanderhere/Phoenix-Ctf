@@ -9,8 +9,13 @@ export default function Navbar() {
 
   const handleSignOut = async () => {
     try {
+      console.log('Starting sign out process...')
       await signOut()
-      window.location.href = '/'
+      console.log('Sign out completed, redirecting...')
+      // Use router.push instead of window.location for better UX
+      setTimeout(() => {
+        window.location.href = '/'
+      }, 100)
     } catch (error) {
       console.error('Sign out error:', error)
       // Fallback: redirect to home page
@@ -50,14 +55,19 @@ export default function Navbar() {
             ) : session?.user ? (
               <div className="flex items-center space-x-4">
                 <div className="text-sm">
-                  <p className="font-medium text-gray-900">{session.user.name || session.user.username || 'User'}</p>
-                  <p className="text-gray-500">Score: {session.user.score || 0}</p>
+                  <p className="font-medium text-gray-900">
+                    {session?.user?.name || session?.user?.username || 'User'}
+                  </p>
+                  <p className="text-gray-500">
+                    Score: {session?.user?.score || 0}
+                  </p>
                 </div>
                 <button
                   onClick={handleSignOut}
                   className="btn btn-secondary"
+                  disabled={loading}
                 >
-                  Sign Out
+                  {loading ? 'Signing Out...' : 'Sign Out'}
                 </button>
               </div>
             ) : (
